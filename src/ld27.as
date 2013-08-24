@@ -10,6 +10,8 @@ package
 		public function ld27()
 		{
 			super(768,496,MenuState,1);
+			forceDebugger = true;
+			FlxG.framerate = 60;
 		}
 	}
 }

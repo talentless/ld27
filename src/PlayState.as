@@ -17,21 +17,27 @@ package
         public var paused:Boolean;
         public var pauseGroup:FlxGroup;
 
+
+        public var levelOverlay:FlxGroup;
+
         public var emitters:FlxGroup;
 
         public var civs:FlxGroup;
         public var bots:FlxGroup;
         public var aliens:FlxGroup;
 
+        public var roomOverlays:FlxGroup;
 
         public var target:FlxSprite;
         public var selector:FlxSprite;
-        public var selected:FlxSprite;
+        public var selected:TagSprite;
 
         public var stateLabel:FlxText;
 
         public var timeRemaining:Number;
         public var timerLabel:FlxText;
+
+        public var saveCounter:int;
 
 		override public function create():void
 		{
@@ -77,24 +83,48 @@ package
             level.loadMap(FlxTilemap.arrayToCSV(data,48),PlayState.RTiles,0,0,FlxTilemap.AUTO);
             add(level);
 
+            // TODO: add a second tile map here that will sit over the first
+            // for decorations. this one will NOT be an automap and it will
+            // not partake in collisions
+
             // GROUPS
+            levelOverlay = new FlxGroup();
+            add(levelOverlay);
+
             emitters = new FlxGroup();
             add(emitters);
 
             civs = new FlxGroup();
             add(civs);
-            for (var civ:int = 0; civ < 5; civ++) {
-                placeCiv();
-            }
 
             bots = new FlxGroup();
             add(bots);
-            for (var bot:int = 0; bot < 3; bot++) {
-                placeBot();
-            }
 
             aliens = new FlxGroup();
             add(aliens);
+
+            roomOverlays = new FlxGroup();
+            add(roomOverlays);
+
+            // ADD ACTUAL UNITS
+            // we will want to change this to a card drawing system so we do
+            // not place things in the same room.
+            // we have 25 rooms available
+            // distribution:
+            //    - 5 civs
+            //    - 3 doors bots
+            //    - 2 pointer bots
+            //    - 1 steam/laser bot
+            //    - 1 alien (more spawn every second)
+            //    - 13 empty rooms
+            for (var civ:int = 0; civ < 5; civ++) {
+                placeCiv();
+            }
+            for (var bot:int = 0; bot < 3; bot++) {
+                placeBot(TagSprite.BOT_DOOR);
+            }
+            placeBot(TagSprite.BOT_POINTER);
+            placeBot(TagSprite.BOT_POINTER);
             placeAlien();
 
             // PAUSE OVERLAY
@@ -131,9 +161,11 @@ package
 
         public function placeCiv(): void {
             var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
-            var civ:FlxSprite = new FlxSprite(pos.x, pos.y);
+            var civ:TagSprite = new TagSprite(pos.x, pos.y);
             civ.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             civ.width = civ.height = 8;
+
+            civ.tag = TagSprite.CIV_WANDERING;
 
             civ.addAnimation("run", [1, 0, 2, 3], 8, true);
             civ.addAnimation("idle", [0,3], 1.5, true);
@@ -144,20 +176,34 @@ package
 
         public function updateCivs(): void {
             for (var i:int = 0; i < civs.length; i++) {
-                var civ:FlxSprite = civs.members[i];
+                var civ:TagSprite = civs.members[i];
                 if (civ.pathSpeed == 0 || civ.touching) {
                     civ.stopFollowingPath(true);
                     civ.velocity.x = civ.velocity.y = 0;
                     // check if in escape pod
                     var curRoom:FlxPoint = getRoomForPoint(civ.x, civ.y);
                     if (curRoom.x == 5 && curRoom.y == 2) {
-                        civ.play("idle");
+                        if (civ.tag == TagSprite.CIV_HOME) {
+                            civ.play("idle");
+                        } else {
+                            civ.tag = TagSprite.CIV_HOME;
+
+                            var finalDestination:FlxPoint = getRoomCorner(getEscapePod());
+                            finalDestination.x += 16 + 24 * (saveCounter % 3);
+                            finalDestination.y += 8 + (3 * 16 + 8) * (saveCounter % 2);
+
+                            var restingPath:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), finalDestination);
+                            civ.followPath(restingPath, CIV_SPEED);
+
+                            saveCounter++;
+                        }
                         continue; // we are in the room
                     } else {
                         // get new path
                         var newDestination:FlxPoint = getRoomCenter(getRandomRoom(true));
                         var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), newDestination);
                         civ.followPath(path, CIV_SPEED);
+                        civ.tag = TagSprite.CIV_WANDERING;
                     }
                 }
                 civ.angle = civ.pathAngle;
@@ -166,15 +212,33 @@ package
 
         // BOTS
 
-        public function placeBot(): void {
+        public function placeBot(tag:int): void {
             var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
             var bot:TagSprite = new TagSprite(pos.x, pos.y);
             bot.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             bot.width = bot.height = 12;
-            bot.immovable = true;
-            bot.tag = TagSprite.BOT_DOOR;
-            bot.addAnimation("run", [10, 11], 8, true);
-            bot.addAnimation("idle", [8, 9], 1.5, true);
+            bot.tag = tag;
+
+            if (tag == TagSprite.BOT_DOOR) {
+                bot.tag = TagSprite.BOT_DOOR;
+                bot.addAnimation("run", [10, 11], 8, true);
+                bot.addAnimation("idle", [8, 9], 1.5, true);
+            } else if (tag == TagSprite.BOT_POINTER) {
+                bot.addAnimation("run", [6, 7], 1.5, true);
+                bot.addAnimation("idle", [6, 7], 8, true);
+                bot.angle = FlxU.getAngle(new FlxPoint(bot.x, bot.y),
+                    getRoomCenter(getEscapePod()));
+                // setup room overlay
+                var pointerOverlay:TagSprite = new TagSprite(pos.x-16*3, pos.y-16*2);
+                pointerOverlay.makeGraphic(7*16,5*16,0x33338833);
+                pointerOverlay.tag = TagSprite.OVERLAY_POINTER;
+                roomOverlays.add(pointerOverlay);
+                bot.overlay = pointerOverlay;
+
+                bot.solid = false;
+            }
+
+            bot.immovable = (bot.tag == TagSprite.BOT_POINTER);
             bot.play("idle");
 
             bots.add(bot);
@@ -182,14 +246,19 @@ package
 
         public function updateBots(): void {
             for (var i:int = 0; i < bots.length; i++) {
-                var bot:FlxSprite = bots.members[i];
+                var bot:TagSprite = bots.members[i];
                 bot.immovable = false;
                 bot.angle = bot.pathAngle;
                 if (bot.pathSpeed == 0) {
                     bot.stopFollowingPath(true);
                     bot.velocity.x = bot.velocity.y = 0;
-                    bot.immovable = true;
+                    bot.immovable = (bot.tag == TagSprite.BOT_POINTER);
                     bot.angle = 0;
+                    if (bot.tag == TagSprite.BOT_POINTER) {
+                        bot.angle = FlxU.getAngle(new FlxPoint(bot.x, bot.y),
+                            getRoomCenter(getEscapePod()));
+                        bot.showOverlay(getRoomCorner(getRoomForPoint(bot.x, bot.y)));
+                    }
                     bot.play("idle");
                     if (bot == selected) {
                         target.visible = false;
@@ -204,8 +273,8 @@ package
 
         // ALIENS
 
-        public function placeAlien(): void {
-            var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
+        public function placeAlien(): void { //return;
+            var pos:FlxPoint = getRoomCenter(getRandomAlienRoom());
             var alien:FlxSprite = new FlxSprite(pos.x, pos.y);
             alien.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             alien.width = alien.height = 8;
@@ -217,13 +286,18 @@ package
             aliens.add(alien);
 
             // target
-            var newDestination:FlxPoint = getRoomCenter(new FlxPoint(5, 2));
+            var newDestination:FlxPoint = getRoomCenter(getEscapePod());
             var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
             alien.followPath(path, ALIEN_SPEED);
 
             var effect:FlxEmitter = createEmitter(20, 0, 0xffffaaaa, 200);
             effect.x = pos.x;
             effect.y = pos.y;
+
+            var hole:FlxSprite = new FlxSprite(pos.x, pos.y);
+            hole.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
+            hole.frame = 15;
+            levelOverlay.add(hole);
 
             FlxG.camera.shake(0.01, 0.5);
             FlxG.camera.flash(0xffff9999, 0.5);
@@ -242,7 +316,7 @@ package
                         continue; // we are in the room
                     } else {
                         // get new path
-                        var newDestination:FlxPoint = getRoomCenter(new FlxPoint(5, 2));
+                        var newDestination:FlxPoint = getRoomCenter(getEscapePod());
                         if (alien.touching) {
                             newDestination = getRoomCenter(getRandomRoom(true));
                         }
@@ -263,7 +337,7 @@ package
             if(FlxG.mouse.justPressed()) {
                 var selectedNewMember:Boolean = false;
                 for (var i:int = 0; i < bots.length; i++) {
-                    var bot:FlxSprite = bots.members[i];
+                    var bot:TagSprite = bots.members[i];
                     var botPos:FlxPoint = new FlxPoint(bot.x, bot.y);
 
                     if (bot.overlapsPoint(mousePos)
@@ -282,7 +356,13 @@ package
                       mouseTilePos);
                     selected.followPath(path, BOT_SPEED);
                     selected.immovable = false;
+
                     selected.play("run");
+
+                    if (selected.tag == TagSprite.BOT_POINTER) {
+                        selected.hideOverlay();
+                    }
+
                     target.x = mouseTilePos.x - 4;
                     target.y = mouseTilePos.y;
                     target.visible = true;
@@ -318,10 +398,14 @@ package
             super.update();
 
             // post
+            FlxG.overlap(civs,aliens,killCivs);
+            FlxG.overlap(civs,roomOverlays,civPowerUp);
+
             FlxG.collide(level,emitters);
             FlxG.collide(level,civs);
             FlxG.collide(level,bots);
             FlxG.collide(level,aliens);
+
             FlxG.collide(bots,aliens);
             FlxG.collide(bots,civs);
 
@@ -333,30 +417,59 @@ package
                     liftOff = true;
 
                     FlxG.camera.shake(0.01, 1.5);
-                    FlxG.camera.fade(0xffff6633, 1.5);
+                    FlxG.camera.fade(0xff883333, 1.5);
                 }
-            }
-            if (timeRemaining < 1.0 && !liftOff) {
-                liftOff = true;
-
-                FlxG.camera.shake(0.01, 1.5);
-                FlxG.camera.fade(0xffff3333, 1.5);
             }
             timerLabel.text = timeRemaining.toFixed(2);
         }
 
+        public function killCivs(civ:FlxSprite,alien:FlxSprite):void
+        {
+            var killEmit:FlxEmitter = createEmitter(20, 0, 0xff883333, 50);
+            killEmit.x = civ.x;
+            killEmit.y = civ.y;
+
+            civ.kill();
+        }
+
+        public function civPowerUp(civ:TagSprite,emitter:TagSprite):void
+        {
+            if (emitter.tag == TagSprite.OVERLAY_STEAM) {
+                killCivs(civ, emitter);
+            } else if (emitter.tag == TagSprite.OVERLAY_POINTER && civ.tag != TagSprite.CIV_HEADING_HOME) {
+                civ.tag = TagSprite.CIV_HEADING_HOME;
+                civ.stopFollowingPath(true);
+                civ.velocity.x = civ.velocity.y = 0;
+                var newDestination:FlxPoint = getRoomCenter(getEscapePod());
+                var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), newDestination);
+                civ.followPath(path, CIV_SPEED);
+            }
+        }
+
         // UTILITY FUNCTIONS (rooms are 8x6 need to make these contants)
 
+        public function getEscapePod():FlxPoint {
+            return new FlxPoint(5, 2);
+        }
         public function getRandomRoom(includePod:Boolean):FlxPoint {
             var r:Number = FlxG.random() * 100;
             if (r > 90 && includePod) {
-                return new FlxPoint(5, 2);
+                return getEscapePod();
             }
             return new FlxPoint((int)(FlxG.random() * 5), (int)(FlxG.random() * 4));
         }
 
+        public function getRandomAlienRoom():FlxPoint {
+            // anywhere but the last column
+            return new FlxPoint((int)(FlxG.random() * 4), (int)(FlxG.random() * 4));
+        }
+
         public function getRoomCenter(roomPos:FlxPoint):FlxPoint {
-            return new FlxPoint(toRaw(roomPos.x * 8 + 4) + 4, toRaw(roomPos.y * 6 + 3) + 0);
+            return new FlxPoint(toRaw(roomPos.x * 8 + 4) + 0, toRaw(roomPos.y * 6 + 3) + 0);
+        }
+
+        public function getRoomCorner(roomPos:FlxPoint):FlxPoint {
+            return new FlxPoint(toRaw(roomPos.x * 8 + 1) + 0, toRaw(roomPos.y * 6 + 1) + 0);
         }
 
         public function getRoomForPoint(x:int, y:int):FlxPoint {
