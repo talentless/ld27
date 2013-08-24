@@ -4,6 +4,8 @@ package
 
 	public class PlayState extends FlxState
 	{
+        [Embed(source="assets/tiles.png")] static public var RTiles:Class;
+
         public var level:FlxTilemap;
 
         public var paused:Boolean;
@@ -61,7 +63,7 @@ package
                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
                 );
             level = new FlxTilemap();
-            level.loadMap(FlxTilemap.arrayToCSV(data,48),FlxTilemap.ImgAuto,0,0,FlxTilemap.AUTO);
+            level.loadMap(FlxTilemap.arrayToCSV(data,48),PlayState.RTiles,0,0,FlxTilemap.AUTO);
             add(level);
 
             // GROUPS
@@ -77,22 +79,24 @@ package
             add(pauseGroup); // to add or not to add?
 
             // UI
-            stateLabel = new FlxText(325, 10, 120, "running");
+            stateLabel = new FlxText(650, 20, 120, "running");
+            stateLabel.size = 24;
             add(stateLabel);
 
             timeRemaining = 10.0;
-            timerLabel = new FlxText(325, 30, 120, timeRemaining.toFixed(2));
+            timerLabel = new FlxText(650, 60, 120, timeRemaining.toFixed(2));
+            timerLabel.size = 24;
             add(timerLabel);
 
-            target = new FlxSprite(4*8, 4*8);
-            target.makeGraphic(4,4,0xff00ff00);
+            target = new FlxSprite(4*16, 4*16);
+            target.makeGraphic(16,16,0xff00ff00);
             add(target);
         }
 
         public function placeCiv(): void {
             var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
             var civ:FlxSprite = new FlxSprite(pos.x, pos.y);
-            civ.makeGraphic(4,4,0xffff0000);
+            civ.makeGraphic(8,8,0xffff0000);
             civs.add(civ);
         }
 
@@ -176,10 +180,10 @@ package
         }
 
         public function toTile(x:int):int {
-            return x / 8;
+            return x / 16;
         }
         public function toRaw(x:int):int {
-            return x * 8;
+            return x * 16;
         }
 
         // DEBUG

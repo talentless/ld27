@@ -8,7 +8,7 @@ package
 	{
 		public function ld27()
 		{
-			super(384,248,MenuState,2);
+			super(768,496,MenuState,1);
 		}
 	}
 }
