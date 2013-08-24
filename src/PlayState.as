@@ -14,6 +14,7 @@ package
 
         public var civs:FlxGroup;
         public var bots:FlxGroup;
+        public var aliens:FlxGroup;
 
 
         public var target:FlxSprite;
@@ -81,6 +82,10 @@ package
             for (var bot:int = 0; bot < 3; bot++) {
                 placeBot();
             }
+
+            aliens = new FlxGroup();
+            add(aliens);
+            placeAlien();
 
             // PAUSE OVERLAY
             paused = false;
@@ -157,7 +162,7 @@ package
             //bot.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             bot.makeGraphic(16,16,0xffaaaaaa);
             bot.width = bot.height = 8;
-
+            bot.immovable = true;
             //bot.addAnimation("run", [1, 0, 2, 3], 8, true);
             //bot.addAnimation("idle", [0,3], 1.5, true);
             //bot.play("run");
@@ -168,15 +173,17 @@ package
         public function updateBots(): void {
             for (var i:int = 0; i < bots.length; i++) {
                 var bot:FlxSprite = bots.members[i];
+                bot.immovable = false;
                 if (bot.pathSpeed == 0) {
                     bot.stopFollowingPath(true);
                     bot.velocity.x = bot.velocity.y = 0;
+                    bot.immovable = true;
                     //bot.play("idle");
                     if (bot == selected) {
                         target.visible = false;
                     }
                 }
-                bot.angle = bot.pathAngle;
+                //bot.angle = bot.pathAngle;
             }
             if (selected != null) {
                 selector.x = selected.x;
@@ -184,13 +191,60 @@ package
             }
         }
 
+        // ALIENS
+
+        public function placeAlien(): void {
+            var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
+            var alien:FlxSprite = new FlxSprite(pos.x, pos.y);
+            //alien.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
+            alien.makeGraphic(8,8,0xffff0000);
+            alien.width = alien.height = 8;
+
+            //alien.addAnimation("run", [1, 0, 2, 3], 8, true);
+            //alien.addAnimation("idle", [0,3], 1.5, true);
+            //alien.play("run");
+
+            aliens.add(alien);
+
+            // target
+            var newDestination:FlxPoint = getRoomCenter(new FlxPoint(5, 2));
+            var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
+            alien.followPath(path, 100);
+        }
+
+        public function updateAliens(): void {
+            for (var i:int = 0; i < aliens.length; i++) {
+                var alien:FlxSprite = aliens.members[i];
+                if (alien.pathSpeed == 0 || (alien.touching)) {
+                    alien.stopFollowingPath(true);
+                    alien.velocity.x = alien.velocity.y = 0;
+                    // check if in escape pod
+                    var curRoom:FlxPoint = getRoomForPoint(alien.x, alien.y);
+                    if (curRoom.x == 5 && curRoom.y == 2) {
+                        //alien.play("idle");
+                        continue; // we are in the room
+                    } else {
+                        // get new path
+                        var newDestination:FlxPoint = getRoomCenter(new FlxPoint(5, 2));
+                        if (alien.touching) {
+                            newDestination = getRoomCenter(getRandomRoom(true));
+                        }
+                        var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
+                        alien.followPath(path);
+                    }
+                }
+                alien.angle = alien.pathAngle;
+            }
+        }
+
         // UPDATE
 
         override public function update():void {
             // controls always occur
+            var mousePos:FlxPoint = new FlxPoint(FlxG.mouse.x, FlxG.mouse.y);
+            var mouseTilePos:FlxPoint = nearestTileCenter(FlxG.mouse.x, FlxG.mouse.y);
             if(FlxG.mouse.justPressed()) {
-            var selectedNewMember:Boolean = false;
-                var mousePos:FlxPoint = new FlxPoint(FlxG.mouse.x, FlxG.mouse.y);
+                var selectedNewMember:Boolean = false;
                 for (var i:int = 0; i < bots.length; i++) {
                     var bot:FlxSprite = bots.members[i];
                     var botPos:FlxPoint = new FlxPoint(bot.x, bot.y);
@@ -208,10 +262,11 @@ package
                 if (!selectedNewMember && selected != null) {
                     selected.stopFollowingPath(true);
                     var path:FlxPath = level.findPath(new FlxPoint(selected.x, selected.y),
-                      mousePos);
+                      mouseTilePos);
                     selected.followPath(path, 400);
-                    target.x = FlxG.mouse.x;
-                    target.y = FlxG.mouse.y;
+                    selected.immovable = false;
+                    target.x = mouseTilePos.x - 4;
+                    target.y = mouseTilePos.y;
                     target.visible = true;
                 }
             }
@@ -231,11 +286,15 @@ package
             // pre
             updateCivs();
             updateBots();
+            updateAliens();
 
             super.update();
 
             // post
             FlxG.collide(level,civs);
+            FlxG.collide(level,bots);
+            FlxG.collide(level,aliens);
+            FlxG.collide(bots,aliens);
 
             // the end
             timeRemaining -= FlxG.elapsed
@@ -268,15 +327,19 @@ package
             return x * 16;
         }
 
+        public function nearestTileCenter(x:int, y:int):FlxPoint {
+            return new FlxPoint( Math.floor(toTile(x)) * 16 + 4, Math.floor(toTile(y)) * 16 + 0);
+        }
+
         // DEBUG
         override public function draw():void {
             super.draw();
             //To draw path
-            for (var i:int = 0; i < civs.length; i++) {
-                var civ:FlxObject = civs.members[i];
-                if (civ.path != null)
+            for (var i:int = 0; i < aliens.length; i++) {
+                var d:FlxObject = aliens.members[i];
+                if (d.path != null)
                 {
-                    civ.path.drawDebug();
+                    d.path.drawDebug();
                 }
             }
         }
