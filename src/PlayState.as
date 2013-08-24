@@ -5,6 +5,7 @@ package
 	public class PlayState extends FlxState
 	{
         [Embed(source="assets/tiles.png")] static public var RTiles:Class;
+        [Embed(source="assets/civ.png")] static public var CivTiles:Class;
 
         public var level:FlxTilemap;
 
@@ -27,7 +28,7 @@ package
             FlxG.mouse.show();
 
             // LEVEL
-            FlxG.bgColor = 0xff333333;
+            FlxG.bgColor = 0xff1c1b1c;
 
             var data:Array = new Array(
                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -96,29 +97,35 @@ package
         public function placeCiv(): void {
             var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
             var civ:FlxSprite = new FlxSprite(pos.x, pos.y);
-            civ.makeGraphic(8,8,0xffff0000);
+            civ.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
+            civ.width = civ.height = 8;
+
+            civ.addAnimation("run", [1,2], 7, true);
+            civ.addAnimation("idle", [0,3], 1.5, true);
+            civ.play("run");
+
             civs.add(civ);
         }
 
         public function updateCivs(): void {
             for (var i:int = 0; i < civs.length; i++) {
-                var civ:FlxObject = civs.members[i];
+                var civ:FlxSprite = civs.members[i];
                 if (civ.pathSpeed == 0) {
                     civ.stopFollowingPath(true);
                     civ.velocity.x = civ.velocity.y = 0;
                     // check if in escape pod
                     var curRoom:FlxPoint = getRoomForPoint(civ.x, civ.y);
                     if (curRoom.x == 5 && curRoom.y == 2) {
+                        civ.play("idle");
                         continue; // we are in the room
                     } else {
                         // get new path
                         var newDestination:FlxPoint = getRoomCenter(getRandomRoom(true));
                         var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), newDestination);
                         civ.followPath(path);
-                        target.x = newDestination.x;
-                        target.y = newDestination.y;
                     }
                 }
+                civ.angle = civ.pathAngle;
             }
         }
 
@@ -165,7 +172,7 @@ package
         // UTILITY FUNCTIONS (rooms are 8x6 need to make these contants)
         public function getRandomRoom(includePod:Boolean):FlxPoint {
             var r:Number = FlxG.random() * 100;
-            if (r > 80) {
+            if (r > 90 && includePod) {
                 return new FlxPoint(5, 2);
             }
             return new FlxPoint((int)(FlxG.random() * 5), (int)(FlxG.random() * 4));
@@ -190,9 +197,12 @@ package
         override public function draw():void {
             super.draw();
             //To draw path
-            if (civs.members[0].path != null)
-            {
-                civs.members[0].path.drawDebug();
+            for (var i:int = 0; i < civs.length; i++) {
+                var civ:FlxObject = civs.members[i];
+                if (civ.path != null)
+                {
+                    civ.path.drawDebug();
+                }
             }
         }
     }

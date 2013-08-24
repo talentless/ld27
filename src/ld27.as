@@ -4,6 +4,7 @@ package
 	[SWF(width="768", height="496", backgroundColor="#000000")]
 	[Frame(factoryClass="Preloader")]
 
+	/* width="1152", height="744" */
 	public class ld27 extends FlxGame
 	{
 		public function ld27()
