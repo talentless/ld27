@@ -101,12 +101,14 @@ package
             target.makeGraphic(16,16,0xff00ff00);
             target.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             target.frame = 4;
+            target.visible = false;
             add(target);
 
             selector = new FlxSprite(4*16, 4*16);
             selector.makeGraphic(16,16,0xff00ff00);
             selector.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             selector.frame = 5;
+            selector.visible = false;
             add(selector);
         }
 
@@ -169,11 +171,9 @@ package
                 if (bot.pathSpeed == 0) {
                     bot.stopFollowingPath(true);
                     bot.velocity.x = bot.velocity.y = 0;
-                    // check if in escape pod
-                    var curRoom:FlxPoint = getRoomForPoint(bot.x, bot.y);
-                    if (curRoom.x == 5 && curRoom.y == 2) {
-                        bot.play("idle");
-                        continue; // we are in the room
+                    //bot.play("idle");
+                    if (bot == selected) {
+                        target.visible = false;
                     }
                 }
                 bot.angle = bot.pathAngle;
@@ -189,10 +189,10 @@ package
         override public function update():void {
             // controls always occur
             if(FlxG.mouse.justPressed()) {
-                var selectedNewMember:Boolean = false;
+            var selectedNewMember:Boolean = false;
+                var mousePos:FlxPoint = new FlxPoint(FlxG.mouse.x, FlxG.mouse.y);
                 for (var i:int = 0; i < bots.length; i++) {
                     var bot:FlxSprite = bots.members[i];
-                    var mousePos:FlxPoint = new FlxPoint(FlxG.mouse.x, FlxG.mouse.y);
                     var botPos:FlxPoint = new FlxPoint(bot.x, bot.y);
 
                     if (bot.overlapsPoint(mousePos)
@@ -200,6 +200,7 @@ package
                         selected = bot;
                         selector.x = bot.x;
                         selector.y = bot.y;
+                        selector.visible = true;
                         selectedNewMember = true;
                         break;
                     }
@@ -207,10 +208,11 @@ package
                 if (!selectedNewMember && selected != null) {
                     selected.stopFollowingPath(true);
                     var path:FlxPath = level.findPath(new FlxPoint(selected.x, selected.y),
-                      new FlxPoint(FlxG.mouse.x, FlxG.mouse.y));
-                    selected.followPath(path);
+                      mousePos);
+                    selected.followPath(path, 400);
                     target.x = FlxG.mouse.x;
                     target.y = FlxG.mouse.y;
+                    target.visible = true;
                 }
             }
 
