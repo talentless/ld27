@@ -12,6 +12,9 @@ package
         public var civs:FlxGroup;
 
 
+        public var target:FlxSprite;
+        public var selector:FlxSprite;
+
         public var stateLabel:FlxText;
 
 		override public function create():void
@@ -29,6 +32,7 @@ package
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -60,8 +64,9 @@ package
             // GROUPS
             civs = new FlxGroup();
             add(civs);
-
-            placeCiv(4*8, 4*8);
+            for (var civ:int = 0; civ < 5; civ++) {
+                placeCiv();
+            }
 
             // PAUSE OVERLAY
             paused = false;
@@ -71,10 +76,15 @@ package
             // UI
             stateLabel = new FlxText(325, 10, 120, "running");
             add(stateLabel);
+
+            target = new FlxSprite(4*8, 4*8);
+            target.makeGraphic(4,4,0xff00ff00);
+            add(target);
         }
 
-        public function placeCiv(x:int, y:int): void {
-            var civ:FlxSprite = new FlxSprite(x, y);
+        public function placeCiv(): void {
+            var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
+            var civ:FlxSprite = new FlxSprite(pos.x, pos.y);
             civ.makeGraphic(4,4,0xffff0000);
             civs.add(civ);
         }
@@ -85,6 +95,18 @@ package
                 if (civ.pathSpeed == 0) {
                     civ.stopFollowingPath(true);
                     civ.velocity.x = civ.velocity.y = 0;
+                    // check if in escape pod
+                    var curRoom:FlxPoint = getRoomForPoint(civ.x, civ.y);
+                    if (curRoom.x == 5 && curRoom.y == 2) {
+                        continue; // we are in the room
+                    } else {
+                        // get new path
+                        var newDestination:FlxPoint = getRoomCenter(getRandomRoom(true));
+                        var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), newDestination);
+                        civ.followPath(path);
+                        target.x = newDestination.x;
+                        target.y = newDestination.y;
+                    }
                 }
             }
         }
@@ -98,6 +120,8 @@ package
                     var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y),
                       new FlxPoint(FlxG.mouse.x, FlxG.mouse.y));
                     civ.followPath(path);
+                    target.x = FlxG.mouse.x;
+                    target.y = FlxG.mouse.y;
                 }
             }
 
@@ -121,5 +145,40 @@ package
             // post
             FlxG.collide(level,civs);
         }
+
+        // UTILITY FUNCTIONS (rooms are 8x6 need to make these contants)
+        public function getRandomRoom(includePod:Boolean):FlxPoint {
+            var r:Number = FlxG.random() * 100;
+            if (r > 80) {
+                return new FlxPoint(5, 2);
+            }
+            return new FlxPoint((int)(FlxG.random() * 5), (int)(FlxG.random() * 4));
+        }
+
+        public function getRoomCenter(roomPos:FlxPoint):FlxPoint {
+            return new FlxPoint(toRaw(roomPos.x * 8 + 4), toRaw(roomPos.y * 6 + 3));
+        }
+
+        public function getRoomForPoint(x:int, y:int):FlxPoint {
+            return new FlxPoint( Math.floor(toTile(x) / 8), Math.floor(toTile(y) / 6));
+        }
+
+        public function toTile(x:int):int {
+            return x / 8;
+        }
+        public function toRaw(x:int):int {
+            return x * 8;
+        }
+
+        // DEBUG
+        override public function draw():void {
+            super.draw();
+            //To draw path
+            if (civs.members[0].path != null)
+            {
+                civs.members[0].path.drawDebug();
+            }
+        }
     }
+
 }
