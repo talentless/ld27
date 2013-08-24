@@ -17,6 +17,9 @@ package
 
         public var stateLabel:FlxText;
 
+        public var timeRemaining:Number;
+        public var timerLabel:FlxText;
+
 		override public function create():void
 		{
             FlxG.mouse.show();
@@ -76,6 +79,10 @@ package
             // UI
             stateLabel = new FlxText(325, 10, 120, "running");
             add(stateLabel);
+
+            timeRemaining = 10.0;
+            timerLabel = new FlxText(325, 30, 120, timeRemaining.toFixed(2));
+            add(timerLabel);
 
             target = new FlxSprite(4*8, 4*8);
             target.makeGraphic(4,4,0xff00ff00);
@@ -144,6 +151,11 @@ package
 
             // post
             FlxG.collide(level,civs);
+
+            // the end
+            timeRemaining -= FlxG.elapsed
+            if (timeRemaining < 0) { timeRemaining = 0; }
+            timerLabel.text = timeRemaining.toFixed(2);
         }
 
         // UTILITY FUNCTIONS (rooms are 8x6 need to make these contants)
