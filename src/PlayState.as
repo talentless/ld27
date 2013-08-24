@@ -9,7 +9,7 @@ package
 
         static public var CIV_SPEED:Number = 200;
         static public var BOT_SPEED:Number = 400;
-        static public var ALIEN_SPEED:Number = 150;
+        static public var ALIEN_SPEED:Number = 200;
 
         public var level:FlxTilemap;
 
@@ -28,12 +28,15 @@ package
 
         public var roomOverlays:FlxGroup;
 
+        public var gameOver:FlxGroup;
+
         public var target:FlxSprite;
         public var selector:FlxSprite;
         public var selected:TagSprite;
 
         public var stateLabel:FlxText;
 
+        public var timePaused:Number;
         public var timeRemaining:Number;
         public var timerLabel:FlxText;
 
@@ -151,7 +154,7 @@ package
             add(pauseGroup); // to add or not to add?
 
             // UI
-            stateLabel = new FlxText(650, 20, 120, "running");
+            stateLabel = new FlxText(650, 20, 120, "takeoff");
             stateLabel.size = 24;
             add(stateLabel);
 
@@ -181,6 +184,9 @@ package
             selector.frame = 5;
             selector.visible = false;
             add(selector);
+
+            // do not add
+            gameOver = new FlxGroup();
         }
 
         // GENERATE UNITS
@@ -386,6 +392,12 @@ package
         // UPDATE
 
         override public function update():void {
+            // lift off occurred
+            if (liftOff) {
+                super.update();
+                gameOver.update(); // only update // draw this when paused
+                return;
+            }
             // controls always occur
             var mousePos:FlxPoint = new FlxPoint(FlxG.mouse.x, FlxG.mouse.y);
             var mouseTilePos:FlxPoint = nearestTileCenter(FlxG.mouse.x, FlxG.mouse.y);
@@ -435,11 +447,13 @@ package
                 if (paused) {
                     stateLabel.text = "paused";
                 } else {
-                    stateLabel.text = "running"
+                    stateLabel.text = "takeoff"
                 }
             } 
-            if (paused)
+            if (paused) {
+                timePaused += FlxG.elapsed;
                 return pauseGroup.update();
+            }
 
             // pre
             updateCivs();
@@ -453,6 +467,20 @@ package
             super.update();
 
             // post
+            updatePhysics();
+
+            // the end
+            timeRemaining -= FlxG.elapsed;
+            if (timeRemaining < 0) {
+                timeRemaining = 0;
+                if (!liftOff) {
+                    doGameOver();
+                }
+            }
+            timerLabel.text = timeRemaining.toFixed(2);
+        }
+
+        public function updatePhysics():void {
             FlxG.overlap(civs,aliens,killCivs);
             FlxG.overlap(civs,roomOverlays,civPowerUp);
 
@@ -463,26 +491,49 @@ package
 
             FlxG.collide(bots,aliens);
             FlxG.collide(bots,civs);
-
-            // the end
-            timeRemaining -= FlxG.elapsed
-            if (timeRemaining < 0) {
-                timeRemaining = 0;
-                if (!liftOff) {
-                    liftOff = true;
-
-                    FlxG.camera.shake(0.01, 1.5);
-                    FlxG.camera.fade(0xff883333, 1.5);
-
-                    level.setTile(40, 15, 1);
-                }
-            }
-            timerLabel.text = timeRemaining.toFixed(2);
         }
 
         public function updateLabels():void {
             lostLabel.text = lostCounter.toString() + " lost";
             saveLabel.text = saveCounter.toString() + " saved";
+        }
+
+        public function doGameOver():void {
+            liftOff = true;
+
+            FlxG.camera.shake(0.01, 1.5);
+            FlxG.camera.fade(0xff883333, 1.5, showResults);
+
+            level.setTile(40, 15, 1); // close the door
+        }
+
+        public function showResults():void {
+            FlxG.camera.stopFX();
+            // add results to the game over group
+            var bg:FlxSprite = new FlxSprite(-5,0);
+            bg.makeGraphic(768, 496, 0xff883333);
+            gameOver.add(bg);
+
+            var title:FlxText = new FlxText(384-240, 100, 480, "GAME OVER");
+            title.size = 64;
+            title.alignment = "center";
+            gameOver.add(title);
+
+            var saveStat:FlxText = new FlxText(384-240, 230, 480, "Civilians Saved: " + saveCounter);
+            saveStat.size = 32;
+            saveStat.alignment = "center";
+            gameOver.add(saveStat);
+
+            var pauseRatio:Number = (timePaused + 0.001) / 10.0;
+            var timeStat:FlxText = new FlxText(384-240, 270, 480, "Pause Ratio: " + pauseRatio.toFixed(2));
+            timeStat.size = 32;
+            timeStat.alignment = "center";
+            gameOver.add(timeStat);
+
+            var restart:FlxText = new FlxText(384-240, 400, 480, "Press R to restart.");
+            restart.size = 24;
+            restart.alignment = "center";
+            gameOver.add(restart);
         }
 
         public function killCivs(civ:FlxSprite,alien:FlxSprite):void
@@ -581,9 +632,12 @@ package
             return emitter;
         }
 
-        // DEBUG
         override public function draw():void {
             super.draw();
+            if (liftOff) {
+                gameOver.draw();
+            }
+            // DEBUG
             //To draw path
             for (var i:int = 0; i < aliens.length; i++) {
                 var d:FlxObject = aliens.members[i];
