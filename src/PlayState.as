@@ -200,13 +200,12 @@ package
         public function placeAlien(): void {
             var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
             var alien:FlxSprite = new FlxSprite(pos.x, pos.y);
-            //alien.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
-            alien.makeGraphic(8,8,0xffff0000);
+            alien.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             alien.width = alien.height = 8;
 
-            //alien.addAnimation("run", [1, 0, 2, 3], 8, true);
+            alien.addAnimation("run", [13, 14], 8, true);
             //alien.addAnimation("idle", [0,3], 1.5, true);
-            //alien.play("run");
+            alien.play("run");
 
             aliens.add(alien);
 
