@@ -38,6 +38,10 @@ package
         public var timerLabel:FlxText;
 
         public var saveCounter:int;
+        public var lostCounter:int;
+
+        public var saveLabel:FlxText;
+        public var lostLabel:FlxText;
 
 		override public function create():void
 		{
@@ -156,6 +160,14 @@ package
             timerLabel.size = 24;
             add(timerLabel);
 
+            saveLabel = new FlxText(650, 320, 120, saveCounter.toString() + " saved");
+            saveLabel.size = 24;
+            add(saveLabel);
+
+            lostLabel = new FlxText(650, 360, 120, lostCounter.toString() + " lost");
+            lostLabel.size = 24;
+            add(lostLabel);
+
             target = new FlxSprite(4*16, 4*16);
             target.makeGraphic(16,16,0xff00ff00);
             target.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
@@ -234,6 +246,7 @@ package
                             civ.followPath(restingPath, CIV_SPEED);
 
                             saveCounter++;
+                            updateLabels();
                         }
                         continue; // we are in the room
                     } else {
@@ -460,9 +473,16 @@ package
 
                     FlxG.camera.shake(0.01, 1.5);
                     FlxG.camera.fade(0xff883333, 1.5);
+
+                    level.setTile(40, 15, 1);
                 }
             }
             timerLabel.text = timeRemaining.toFixed(2);
+        }
+
+        public function updateLabels():void {
+            lostLabel.text = lostCounter.toString() + " lost";
+            saveLabel.text = saveCounter.toString() + " saved";
         }
 
         public function killCivs(civ:FlxSprite,alien:FlxSprite):void
@@ -472,6 +492,9 @@ package
             killEmit.y = civ.y;
 
             civ.kill();
+
+            lostCounter++;
+            updateLabels();
         }
 
         public function civPowerUp(civ:TagSprite,emitter:TagSprite):void
