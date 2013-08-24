@@ -13,10 +13,12 @@ package
         public var pauseGroup:FlxGroup;
 
         public var civs:FlxGroup;
+        public var bots:FlxGroup;
 
 
         public var target:FlxSprite;
         public var selector:FlxSprite;
+        public var selected:FlxSprite;
 
         public var stateLabel:FlxText;
 
@@ -52,7 +54,7 @@ package
                 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -74,6 +76,12 @@ package
                 placeCiv();
             }
 
+            bots = new FlxGroup();
+            add(bots);
+            for (var bot:int = 0; bot < 3; bot++) {
+                placeBot();
+            }
+
             // PAUSE OVERLAY
             paused = false;
             pauseGroup = new FlxGroup();
@@ -91,8 +99,18 @@ package
 
             target = new FlxSprite(4*16, 4*16);
             target.makeGraphic(16,16,0xff00ff00);
+            target.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
+            target.frame = 4;
             add(target);
+
+            selector = new FlxSprite(4*16, 4*16);
+            selector.makeGraphic(16,16,0xff00ff00);
+            selector.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
+            selector.frame = 5;
+            add(selector);
         }
+
+        // CIVILIANS
 
         public function placeCiv(): void {
             var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
@@ -100,7 +118,7 @@ package
             civ.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             civ.width = civ.height = 8;
 
-            civ.addAnimation("run", [1,2], 7, true);
+            civ.addAnimation("run", [1, 0, 2, 3], 8, true);
             civ.addAnimation("idle", [0,3], 1.5, true);
             civ.play("run");
 
@@ -129,15 +147,68 @@ package
             }
         }
 
+        // BOTS
+
+        public function placeBot(): void {
+            var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
+            var bot:FlxSprite = new FlxSprite(pos.x, pos.y);
+            //bot.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
+            bot.makeGraphic(16,16,0xffaaaaaa);
+            bot.width = bot.height = 8;
+
+            //bot.addAnimation("run", [1, 0, 2, 3], 8, true);
+            //bot.addAnimation("idle", [0,3], 1.5, true);
+            //bot.play("run");
+
+            bots.add(bot);
+        }
+
+        public function updateBots(): void {
+            for (var i:int = 0; i < bots.length; i++) {
+                var bot:FlxSprite = bots.members[i];
+                if (bot.pathSpeed == 0) {
+                    bot.stopFollowingPath(true);
+                    bot.velocity.x = bot.velocity.y = 0;
+                    // check if in escape pod
+                    var curRoom:FlxPoint = getRoomForPoint(bot.x, bot.y);
+                    if (curRoom.x == 5 && curRoom.y == 2) {
+                        bot.play("idle");
+                        continue; // we are in the room
+                    }
+                }
+                bot.angle = bot.pathAngle;
+            }
+            if (selected != null) {
+                selector.x = selected.x;
+                selector.y = selected.y;
+            }
+        }
+
+        // UPDATE
+
         override public function update():void {
             // controls always occur
             if(FlxG.mouse.justPressed()) {
-                for (var i:int = 0; i < civs.length; i++) {
-                    var civ:FlxObject = civs.members[i];
-                    civ.stopFollowingPath(true);
-                    var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y),
+                var selectedNewMember:Boolean = false;
+                for (var i:int = 0; i < bots.length; i++) {
+                    var bot:FlxSprite = bots.members[i];
+                    var mousePos:FlxPoint = new FlxPoint(FlxG.mouse.x, FlxG.mouse.y);
+                    var botPos:FlxPoint = new FlxPoint(bot.x, bot.y);
+
+                    if (bot.overlapsPoint(mousePos)
+                        || FlxU.getDistance(mousePos, botPos) < 20) {
+                        selected = bot;
+                        selector.x = bot.x;
+                        selector.y = bot.y;
+                        selectedNewMember = true;
+                        break;
+                    }
+                }
+                if (!selectedNewMember && selected != null) {
+                    selected.stopFollowingPath(true);
+                    var path:FlxPath = level.findPath(new FlxPoint(selected.x, selected.y),
                       new FlxPoint(FlxG.mouse.x, FlxG.mouse.y));
-                    civ.followPath(path);
+                    selected.followPath(path);
                     target.x = FlxG.mouse.x;
                     target.y = FlxG.mouse.y;
                 }
@@ -157,6 +228,7 @@ package
 
             // pre
             updateCivs();
+            updateBots();
 
             super.update();
 
@@ -170,6 +242,7 @@ package
         }
 
         // UTILITY FUNCTIONS (rooms are 8x6 need to make these contants)
+
         public function getRandomRoom(includePod:Boolean):FlxPoint {
             var r:Number = FlxG.random() * 100;
             if (r > 90 && includePod) {
