@@ -109,23 +109,37 @@ package
             // ADD ACTUAL UNITS
             // we will want to change this to a card drawing system so we do
             // not place things in the same room.
-            // we have 25 rooms available
+            // we have 25 rooms available, we will only use 20 of them
             // distribution:
             //    - 5 civs
             //    - 3 doors bots
             //    - 2 pointer bots
             //    - 1 steam/laser bot
             //    - 1 alien (more spawn every second)
-            //    - 13 empty rooms
-            for (var civ:int = 0; civ < 5; civ++) {
-                placeCiv();
-            }
-            for (var bot:int = 0; bot < 3; bot++) {
-                placeBot(TagSprite.BOT_DOOR);
-            }
-            placeBot(TagSprite.BOT_POINTER);
-            placeBot(TagSprite.BOT_POINTER);
-            placeAlien();
+            //    - 8 empty rooms
+            var cards:Array = new Array(
+                TagSprite.CARD_ALIEN,
+                TagSprite.CARD_BOT_POINTER,
+                TagSprite.CARD_BOT_POINTER,
+                TagSprite.CARD_BOT_DOOR,
+                TagSprite.CARD_BOT_DOOR,
+                TagSprite.CARD_BOT_DOOR,
+                TagSprite.CARD_CIV,
+                TagSprite.CARD_CIV,
+                TagSprite.CARD_CIV,
+                TagSprite.CARD_CIV,
+                TagSprite.CARD_CIV,
+                TagSprite.CARD_EMPTY,
+                TagSprite.CARD_EMPTY,
+                TagSprite.CARD_EMPTY,
+                TagSprite.CARD_EMPTY,
+                TagSprite.CARD_EMPTY,
+                TagSprite.CARD_EMPTY,
+                TagSprite.CARD_EMPTY,
+                TagSprite.CARD_EMPTY,
+                TagSprite.CARD_EMPTY
+                );
+            placeCards(cards);
 
             // PAUSE OVERLAY
             paused = false;
@@ -157,10 +171,34 @@ package
             add(selector);
         }
 
+        // GENERATE UNITS
+
+        public function placeCards(cards:Array):void {
+            var shuffled:Array = FlxU.shuffle(cards, 4*cards.length);
+            for (var i:int = 0; i < cards.length; i++) {
+                var roomPos:FlxPoint = getRoomCenter(new FlxPoint(i % 4, i % 5));
+                var card:int = shuffled[i];
+                generateFromCard(card, roomPos);
+            }
+        }
+        public function generateFromCard(card:int, pos:FlxPoint):void {
+            if (card == TagSprite.CARD_CIV) {
+                placeCiv(pos);
+            } else if (card == TagSprite.CARD_BOT_DOOR) {
+                placeBot(TagSprite.BOT_DOOR, pos);
+            } else if (card == TagSprite.CARD_BOT_POINTER) {
+                placeBot(TagSprite.BOT_POINTER, pos);
+            } else if (card == TagSprite.CARD_ALIEN) {
+                placeAlien(pos);
+            }
+        }
+
         // CIVILIANS
 
-        public function placeCiv(): void {
-            var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
+        public function placeCiv(pos:FlxPoint=null): void {
+            if (pos == null) {
+                pos = getRoomCenter(getRandomRoom(false));
+            }
             var civ:TagSprite = new TagSprite(pos.x, pos.y);
             civ.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             civ.width = civ.height = 8;
@@ -212,8 +250,10 @@ package
 
         // BOTS
 
-        public function placeBot(tag:int): void {
-            var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
+        public function placeBot(tag:int, pos:FlxPoint=null): void {
+            if (pos == null) {
+                pos = getRoomCenter(getRandomRoom(false));
+            }
             var bot:TagSprite = new TagSprite(pos.x, pos.y);
             bot.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             bot.width = bot.height = 12;
@@ -238,7 +278,7 @@ package
                 bot.solid = false;
             }
 
-            bot.immovable = (bot.tag == TagSprite.BOT_POINTER);
+            //bot.immovable = (bot.tag == TagSprite.BOT_POINTER);
             bot.play("idle");
 
             bots.add(bot);
@@ -252,7 +292,7 @@ package
                 if (bot.pathSpeed == 0) {
                     bot.stopFollowingPath(true);
                     bot.velocity.x = bot.velocity.y = 0;
-                    bot.immovable = (bot.tag == TagSprite.BOT_POINTER);
+                    //bot.immovable = (bot.tag == TagSprite.BOT_POINTER);
                     bot.angle = 0;
                     if (bot.tag == TagSprite.BOT_POINTER) {
                         bot.angle = FlxU.getAngle(new FlxPoint(bot.x, bot.y),
@@ -273,8 +313,10 @@ package
 
         // ALIENS
 
-        public function placeAlien(): void { //return;
-            var pos:FlxPoint = getRoomCenter(getRandomAlienRoom());
+        public function placeAlien(pos:FlxPoint=null): void { //return;
+            if (pos == null) {
+                pos = getRoomCenter(getRandomAlienRoom());
+            }
             var alien:FlxSprite = new FlxSprite(pos.x, pos.y);
             alien.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             alien.width = alien.height = 8;

@@ -14,6 +14,12 @@ package
         static public var OVERLAY_POINTER:int = 301;
         static public var OVERLAY_STEAM:int = 302;
 
+        static public var CARD_EMPTY:int = 901;
+        static public var CARD_CIV:int = 902;
+        static public var CARD_BOT_DOOR:int = 903;
+        static public var CARD_BOT_POINTER:int = 904;
+        static public var CARD_ALIEN:int = 905;
+
         public var tag:int;
         public var emitter:FlxEmitter;
         public var overlay:TagSprite;
