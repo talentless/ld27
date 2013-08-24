@@ -13,8 +13,11 @@ package
 
         public var level:FlxTilemap;
 
+        public var liftOff:Boolean;
         public var paused:Boolean;
         public var pauseGroup:FlxGroup;
+
+        public var emitters:FlxGroup;
 
         public var civs:FlxGroup;
         public var bots:FlxGroup;
@@ -59,7 +62,7 @@ package
                 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1,q(),1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1,q(),1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                1, 0, 1, 0, 0, 0, 0, 0,q(),0, 0, 0, 0, 0, 0, 0,q(),0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,q(),0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 0, 0, 0, 0, 0, 0, 0,q(),0, 0, 0, 0, 0, 0, 0,q(),0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,q(),0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1,q(),1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -75,6 +78,9 @@ package
             add(level);
 
             // GROUPS
+            emitters = new FlxGroup();
+            add(emitters);
+
             civs = new FlxGroup();
             add(civs);
             for (var civ:int = 0; civ < 5; civ++) {
@@ -214,6 +220,13 @@ package
             var newDestination:FlxPoint = getRoomCenter(new FlxPoint(5, 2));
             var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
             alien.followPath(path, ALIEN_SPEED);
+
+            var effect:FlxEmitter = createEmitter(20, 0, 0xffffaaaa, 200);
+            effect.x = pos.x;
+            effect.y = pos.y;
+
+            FlxG.camera.shake(0.01, 0.5);
+            FlxG.camera.flash(0xffff9999, 0.5);
         }
 
         public function updateAliens(): void {
@@ -305,6 +318,7 @@ package
             super.update();
 
             // post
+            FlxG.collide(level,emitters);
             FlxG.collide(level,civs);
             FlxG.collide(level,bots);
             FlxG.collide(level,aliens);
@@ -313,7 +327,21 @@ package
 
             // the end
             timeRemaining -= FlxG.elapsed
-            if (timeRemaining < 0) { timeRemaining = 0; }
+            if (timeRemaining < 0) {
+                timeRemaining = 0;
+                if (!liftOff) {
+                    liftOff = true;
+
+                    FlxG.camera.shake(0.01, 1.5);
+                    FlxG.camera.fade(0xffff6633, 1.5);
+                }
+            }
+            if (timeRemaining < 1.0 && !liftOff) {
+                liftOff = true;
+
+                FlxG.camera.shake(0.01, 1.5);
+                FlxG.camera.fade(0xffff3333, 1.5);
+            }
             timerLabel.text = timeRemaining.toFixed(2);
         }
 
@@ -369,7 +397,7 @@ package
                 emitter.add(particle);
             }
 
-            add(emitter);
+            emitters.add(emitter);
             emitter.start(lifespan == 0, lifespan/6.0);
             emitter.lifespan = lifespan;
             return emitter;
