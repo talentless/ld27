@@ -7,6 +7,10 @@ package
         [Embed(source="assets/tiles.png")] static public var RTiles:Class;
         [Embed(source="assets/civ.png")] static public var CivTiles:Class;
 
+        static public var CIV_SPEED:Number = 200;
+        static public var BOT_SPEED:Number = 400;
+        static public var ALIEN_SPEED:Number = 150;
+
         public var level:FlxTilemap;
 
         public var paused:Boolean;
@@ -147,7 +151,7 @@ package
                         // get new path
                         var newDestination:FlxPoint = getRoomCenter(getRandomRoom(true));
                         var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), newDestination);
-                        civ.followPath(path);
+                        civ.followPath(path, CIV_SPEED);
                     }
                 }
                 civ.angle = civ.pathAngle;
@@ -159,13 +163,12 @@ package
         public function placeBot(): void {
             var pos:FlxPoint = getRoomCenter(getRandomRoom(false));
             var bot:FlxSprite = new FlxSprite(pos.x, pos.y);
-            //bot.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
-            bot.makeGraphic(16,16,0xffaaaaaa);
-            bot.width = bot.height = 8;
+            bot.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
+            bot.width = bot.height = 12;
             bot.immovable = true;
-            //bot.addAnimation("run", [1, 0, 2, 3], 8, true);
-            //bot.addAnimation("idle", [0,3], 1.5, true);
-            //bot.play("run");
+            bot.addAnimation("run", [10, 11], 8, true);
+            bot.addAnimation("idle", [8, 9], 1.5, true);
+            bot.play("idle");
 
             bots.add(bot);
         }
@@ -174,16 +177,17 @@ package
             for (var i:int = 0; i < bots.length; i++) {
                 var bot:FlxSprite = bots.members[i];
                 bot.immovable = false;
+                bot.angle = bot.pathAngle;
                 if (bot.pathSpeed == 0) {
                     bot.stopFollowingPath(true);
                     bot.velocity.x = bot.velocity.y = 0;
                     bot.immovable = true;
-                    //bot.play("idle");
+                    bot.angle = 0;
+                    bot.play("idle");
                     if (bot == selected) {
                         target.visible = false;
                     }
                 }
-                //bot.angle = bot.pathAngle;
             }
             if (selected != null) {
                 selector.x = selected.x;
@@ -209,7 +213,7 @@ package
             // target
             var newDestination:FlxPoint = getRoomCenter(new FlxPoint(5, 2));
             var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
-            alien.followPath(path, 100);
+            alien.followPath(path, ALIEN_SPEED);
         }
 
         public function updateAliens(): void {
@@ -230,7 +234,7 @@ package
                             newDestination = getRoomCenter(getRandomRoom(true));
                         }
                         var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
-                        alien.followPath(path);
+                        alien.followPath(path, ALIEN_SPEED);
                     }
                 }
                 alien.angle = alien.pathAngle;
@@ -263,12 +267,18 @@ package
                     selected.stopFollowingPath(true);
                     var path:FlxPath = level.findPath(new FlxPoint(selected.x, selected.y),
                       mouseTilePos);
-                    selected.followPath(path, 400);
+                    selected.followPath(path, BOT_SPEED);
                     selected.immovable = false;
+                    selected.play("run");
                     target.x = mouseTilePos.x - 4;
                     target.y = mouseTilePos.y;
                     target.visible = true;
                 }
+            }
+
+            // reseting
+            if (FlxG.keys.justPressed("R")) {
+                FlxG.resetState();
             }
 
             // pausing
@@ -279,7 +289,7 @@ package
                 } else {
                     stateLabel.text = "running"
                 }
-            }
+            } 
             if (paused)
                 return pauseGroup.update();
 
