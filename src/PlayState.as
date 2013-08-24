@@ -135,7 +135,7 @@ package
         public function updateCivs(): void {
             for (var i:int = 0; i < civs.length; i++) {
                 var civ:FlxSprite = civs.members[i];
-                if (civ.pathSpeed == 0) {
+                if (civ.pathSpeed == 0 || civ.touching) {
                     civ.stopFollowingPath(true);
                     civ.velocity.x = civ.velocity.y = 0;
                     // check if in escape pod
@@ -288,6 +288,10 @@ package
             updateBots();
             updateAliens();
 
+            if (10-timeRemaining > aliens.length) {
+                placeAlien();
+            }
+
             super.update();
 
             // post
@@ -295,6 +299,7 @@ package
             FlxG.collide(level,bots);
             FlxG.collide(level,aliens);
             FlxG.collide(bots,aliens);
+            FlxG.collide(bots,civs);
 
             // the end
             timeRemaining -= FlxG.elapsed
@@ -313,7 +318,7 @@ package
         }
 
         public function getRoomCenter(roomPos:FlxPoint):FlxPoint {
-            return new FlxPoint(toRaw(roomPos.x * 8 + 4), toRaw(roomPos.y * 6 + 3));
+            return new FlxPoint(toRaw(roomPos.x * 8 + 4) + 4, toRaw(roomPos.y * 6 + 3) + 0);
         }
 
         public function getRoomForPoint(x:int, y:int):FlxPoint {
@@ -339,7 +344,7 @@ package
                 var d:FlxObject = aliens.members[i];
                 if (d.path != null)
                 {
-                    d.path.drawDebug();
+                    //d.path.drawDebug();
                 }
             }
         }
