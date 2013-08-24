@@ -159,6 +159,7 @@ package
             add(stateLabel);
 
             timeRemaining = 10.0;
+            timePaused = 0;
             timerLabel = new FlxText(650, 60, 120, timeRemaining.toFixed(2));
             timerLabel.size = 24;
             add(timerLabel);
@@ -394,6 +395,9 @@ package
         override public function update():void {
             // lift off occurred
             if (liftOff) {
+                if (FlxG.keys.justPressed("R")) {
+                    FlxG.resetState();
+                }
                 super.update();
                 gameOver.update(); // only update // draw this when paused
                 return;
@@ -511,7 +515,7 @@ package
             FlxG.camera.stopFX();
             // add results to the game over group
             var bg:FlxSprite = new FlxSprite(-5,0);
-            bg.makeGraphic(768, 496, 0xff883333);
+            bg.makeGraphic(768+5, 496, 0xff883333);
             gameOver.add(bg);
 
             var title:FlxText = new FlxText(384-240, 100, 480, "GAME OVER");
