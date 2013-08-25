@@ -31,9 +31,9 @@ package
 
         public var countdownSFXs:Array;
 
-        static public var CIV_SPEED:Number = 200;
-        static public var BOT_SPEED:Number = 400;
-        static public var ALIEN_SPEED:Number = 200;
+        static public var CIV_SPEED:Number = 150;
+        static public var BOT_SPEED:Number = 300;
+        static public var ALIEN_SPEED:Number = 150;
 
         public var level:FlxTilemap;
         public var levelDecorations:FlxTilemap;
@@ -205,7 +205,6 @@ package
                 TagSprite.CARD_BOT_POINTER,
                 TagSprite.CARD_BOT_DOOR,
                 TagSprite.CARD_BOT_DOOR,
-                TagSprite.CARD_BOT_DOOR,
                 TagSprite.CARD_CIV,
                 TagSprite.CARD_CIV,
                 TagSprite.CARD_CIV,
@@ -222,6 +221,7 @@ package
                 TagSprite.CARD_EMPTY
                 );
             placeCards(cards);
+            placeBot(TagSprite.BOT_DOOR, getRoomCenter(new FlxPoint(4, 4)));
 
             // PAUSE OVERLAY
             paused = false;
@@ -488,6 +488,8 @@ package
         // UPDATE
 
         override public function update():void {
+            // ebrake
+            if (FlxG.elapsed > 0.05) { return; } // in theory on a super slow machine these could cause total and utter catestrophic failure.
             // lift off occurred
             if (liftOff) {
                 if (FlxG.keys.justPressed("R")) {

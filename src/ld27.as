@@ -11,7 +11,7 @@ package
 		{
 			super(768,496,MenuState,1);
 			forceDebugger = true;
-			FlxG.framerate = 60;
+			FlxG.flashFramerate = FlxG.framerate = 60;
 		}
 	}
 }
