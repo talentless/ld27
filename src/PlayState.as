@@ -382,7 +382,7 @@ package
                 bot.solid = false;
             }
 
-            //bot.immovable = (bot.tag == TagSprite.BOT_POINTER);
+            bot.immovable = (bot.tag == TagSprite.BOT_DOOR);
             bot.play("idle");
 
             bots.add(bot);
@@ -394,15 +394,16 @@ package
                 bot.immovable = false;
                 bot.angle = bot.pathAngle;
                 bot.decTimer();
+                var botPos:FlxPoint = new FlxPoint(bot.x, bot.y);
                 if (bot.pathSpeed == 0) {
                     bot.stopFollowingPath(true);
                     bot.velocity.x = bot.velocity.y = 0;
-                    //bot.immovable = (bot.tag == TagSprite.BOT_POINTER);
+                    bot.immovable = (bot.tag == TagSprite.BOT_DOOR);
                     bot.angle = 0;
                     if (bot.tag == TagSprite.BOT_POINTER) {
                         bot.angle = FlxU.getAngle(new FlxPoint(bot.x, bot.y),
                             getRoomCenter(getEscapePod()));
-                        if (!bot.overlay.visible) {
+                        if (!bot.overlay.alive) {
                            FlxG.play(SFX_ACTIVATED, 1);
                         }
                         bot.showOverlay(getRoomCorner(getRoomForPoint(bot.x, bot.y)));
@@ -526,6 +527,7 @@ package
                       mouseTilePos);
                     selected.followPath(path, BOT_SPEED);
                     selected.immovable = false;
+                    selected.timer = 2;
 
                     selected.play("run");
 
@@ -606,11 +608,14 @@ package
 
             FlxG.collide(level,emitters);
             FlxG.collide(level,civs);
-            FlxG.collide(level,bots);
+            FlxG.collide(level,bots, FlxObject.separateX);
+            FlxG.collide(level,bots, FlxObject.separateY);
             FlxG.collide(level,aliens);
 
-            FlxG.collide(bots,aliens);
-            FlxG.collide(bots,civs);
+            FlxG.collide(bots,aliens, FlxObject.separateX);
+            FlxG.collide(bots,aliens, FlxObject.separateY);
+            FlxG.collide(bots,civs, FlxObject.separateX);
+            FlxG.collide(bots,civs, FlxObject.separateY);
         }
 
         public function updateLabels():void {
