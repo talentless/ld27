@@ -273,8 +273,7 @@ package
             // music
             FlxG.playMusic(BGMusic,1);
             FlxG.music.pause();
-
-            FlxG.play(SFX_10,1);
+            FlxG.play(SFX_10, 1);
         }
 
         // GENERATE UNITS
@@ -308,6 +307,7 @@ package
             var civ:TagSprite = new TagSprite(pos.x, pos.y);
             civ.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             civ.width = civ.height = 8;
+            civ.offset = new FlxPoint(4,4);
 
             civ.tag = TagSprite.CIV_WANDERING;
 
@@ -366,7 +366,8 @@ package
             }
             var bot:TagSprite = new TagSprite(pos.x, pos.y);
             bot.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
-            bot.width = bot.height = 12;
+            bot.width = bot.height = 10;
+            bot.offset = new FlxPoint(3,3);
             bot.tag = tag;
 
             if (tag == TagSprite.BOT_DOOR) {
@@ -400,11 +401,15 @@ package
                 bot.immovable = false;
                 bot.angle = bot.pathAngle;
                 bot.decTimer();
+                //bot.solid = bot.timer == 0;
                 var botPos:FlxPoint = new FlxPoint(bot.x, bot.y);
                 if (bot.pathSpeed == 0) {
-                    bot.stopFollowingPath(true);
                     bot.velocity.x = bot.velocity.y = 0;
-                    bot.immovable = (bot.tag == TagSprite.BOT_DOOR);
+                    if (bot.path != null) {
+                        bot.x = bot.path.tail().x-5;
+                        bot.y = bot.path.tail().y-5;
+                    }
+                    bot.stopFollowingPath(true);
                     bot.angle = 0;
                     if (bot.tag == TagSprite.BOT_POINTER) {
                         bot.angle = FlxU.getAngle(new FlxPoint(bot.x, bot.y),
@@ -413,6 +418,10 @@ package
                            FlxG.play(SFX_ACTIVATED, 1);
                         }
                         bot.showOverlay(getRoomCorner(getRoomForPoint(bot.x, bot.y)));
+                    } else {
+                        if (bot.path != null && FlxU.getDistance(botPos, bot.path.tail()) < 16) {
+                            bot.immovable = true;
+                        }
                     }
                     bot.play("idle");
                     if (bot == selected) {
@@ -421,8 +430,8 @@ package
                 }
             }
             if (selected != null) {
-                selector.x = selected.x;
-                selector.y = selected.y;
+                selector.x = selected.x-3;
+                selector.y = selected.y-3;
             }
         }
 
@@ -435,6 +444,7 @@ package
             var alien:TagSprite = new TagSprite(pos.x, pos.y);
             alien.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             alien.width = alien.height = 8;
+            alien.offset = new FlxPoint(4,4);
             alien.timer = 0;
 
             alien.addAnimation("run", [13, 14], 8, true);
@@ -515,24 +525,26 @@ package
 
                     if (bot.overlapsPoint(mousePos)
                         || FlxU.getDistance(mousePos, botPos) < 20) {
+                        if (selected == bot) { break; } // don't select yourself
                         selected = bot;
-                        selector.x = bot.x;
-                        selector.y = bot.y;
+                        selector.x = bot.x-3;
+                        selector.y = bot.y-3;
                         selector.visible = true;
                         selectedNewMember = true;
                         target.visible = false;
                         if (selected.path && selected.pathSpeed > 0) {
                             target.visible = true;
-                            target.x = selected.path.tail().x
-                            target.y = selected.path.tail().y
+                            target.x = selected.path.tail().x - 4;
+                            target.y = selected.path.tail().y - 8;
                         }
                         break;
                     }
                 }
                 if (!selectedNewMember && selected != null) {
                     selected.stopFollowingPath(true);
+                    var targetPos:FlxPoint = new FlxPoint(mouseTilePos.x+4, mouseTilePos.y+8);
                     var path:FlxPath = level.findPath(new FlxPoint(selected.x, selected.y),
-                      mouseTilePos);
+                      targetPos);
                     selected.followPath(path, BOT_SPEED);
                     selected.immovable = false;
                     selected.timer = 2;
@@ -585,6 +597,7 @@ package
                 placeAlien();
             }
 
+            updateCollisions();
             super.update();
 
             // post
@@ -617,7 +630,10 @@ package
         public function updatePhysics():void {
             FlxG.overlap(civs,aliens,killCivs);
             FlxG.overlap(civs,roomOverlays,civPowerUp);
+            updateCollisions();
+        }
 
+        public function updateCollisions():void {
             FlxG.collide(level,emitters);
             FlxG.collide(level,civs);
             FlxG.collide(level,bots, FlxObject.separateX);
@@ -727,7 +743,7 @@ package
 
         public function killCivs(civ:FlxSprite,alien:FlxSprite):void
         {
-            var killEmit:FlxEmitter = createEmitter(20, 0, 0xff883333, 50, 3);
+            var killEmit:FlxEmitter = createEmitter(20, 0, 0xff883333, 50);
             killEmit.x = civ.x;
             killEmit.y = civ.y;
 
