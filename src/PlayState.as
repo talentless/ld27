@@ -775,7 +775,7 @@ package
             }
 
             if (aliensOnBoard > 0) {
-                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You let ALIENS on board. The escape pod eventually crashes to Earth and it triggers human extiniction. No score for you. You suck!");
+                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You let ALIENS on board. The escape pod eventually crashes to Earth and results in human extiniction. No score for you. You suck!");
                 alienStats.size = 32;
                 alienStats.alignment = "center";
                 gameOver.add(alienStats);
