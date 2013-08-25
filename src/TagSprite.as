@@ -25,6 +25,8 @@ package
         public var overlay:TagSprite;
         public var timer:int;
 
+        private var _slowFlicker:int = 0;
+
         public function TagSprite(X:Number=0,Y:Number=0,SimpleGraphic:Class=null)
         {
             super(X,Y,SimpleGraphic);
@@ -46,6 +48,18 @@ package
         public function decTimer():void {
             timer -= 1;
             if (timer < 0) { timer = 0; }
+        }
+
+        override public function draw():void
+        {
+            if (tag == OVERLAY_POINTER) {
+                _slowFlicker = (_slowFlicker + 1) % 6;
+                if(_slowFlicker > 3)
+                {
+                    return;
+                }
+            }
+            super.draw();
         }
     }
 }

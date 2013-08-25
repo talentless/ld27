@@ -331,7 +331,7 @@ package
                     getRoomCenter(getEscapePod()));
                 // setup room overlay
                 var pointerOverlay:TagSprite = new TagSprite(pos.x-16*3, pos.y-16*2);
-                pointerOverlay.makeGraphic(7*16,5*16,0x33338833);
+                pointerOverlay.makeGraphic(7*16,5*16,0x338EB05F);
                 pointerOverlay.tag = TagSprite.OVERLAY_POINTER;
                 roomOverlays.add(pointerOverlay);
                 bot.overlay = pointerOverlay;
@@ -591,7 +591,7 @@ package
             }
 
             if (aliensOnBoard > 0) {
-                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You let ALIENS on loard. The escape pod eventually crashes to Earth and it triggers human extiniction. No score for you. You suck!");
+                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You let ALIENS on board. The escape pod eventually crashes to Earth and it triggers human extiniction. No score for you. You suck!");
                 alienStats.size = 32;
                 alienStats.alignment = "center";
                 gameOver.add(alienStats);
