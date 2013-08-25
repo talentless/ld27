@@ -457,6 +457,12 @@ package
                         selector.y = bot.y;
                         selector.visible = true;
                         selectedNewMember = true;
+                        target.visible = false;
+                        if (selected.path && selected.pathSpeed > 0) {
+                            target.visible = true;
+                            target.x = selected.path.tail().x
+                            target.y = selected.path.tail().y
+                        }
                         break;
                     }
                 }
