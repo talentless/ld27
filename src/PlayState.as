@@ -765,6 +765,14 @@ package
                     aliensOnBoard++;
                 }
             }
+            saveCounter = 0; // get a fresh count due to death chaos
+            for (var i:int = 0; i < civs.length; i++) {
+                var civ:FlxObject = civs.members[i];
+                var roomPos:FlxPoint = getRoomForPoint(civ.x, civ.y);
+                if (roomPos.x == 5 && roomPos.y == 2 && civ.alive) {
+                    saveCounter++;
+                }
+            }
 
             if (aliensOnBoard > 0) {
                 var alienStats:FlxText = new FlxText(384-240, 140, 480, "You let ALIENS on board. The escape pod eventually crashes to Earth and it triggers human extiniction. No score for you. You suck!");
