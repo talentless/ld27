@@ -442,6 +442,11 @@ package
                             FlxG.overlap(aliens,roomOverlays,killAliens);
 
                             bot.hideOverlay();
+                            if (bot == selected) {
+                                selector.visible = false;
+                                target.visible = false;
+                                selected = null;
+                            }
                             continue;
                         }
                     } else {
