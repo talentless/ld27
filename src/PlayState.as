@@ -766,10 +766,10 @@ package
                 }
             }
             saveCounter = 0; // get a fresh count due to death chaos
-            for (var i:int = 0; i < civs.length; i++) {
-                var civ:FlxObject = civs.members[i];
-                var roomPos:FlxPoint = getRoomForPoint(civ.x, civ.y);
-                if (roomPos.x == 5 && roomPos.y == 2 && civ.alive) {
+            for (var c:int = 0; c < civs.length; c++) {
+                var civ:FlxObject = civs.members[c];
+                var cRoomPos:FlxPoint = getRoomForPoint(civ.x, civ.y);
+                if (cRoomPos.x == 5 && cRoomPos.y == 2 && civ.alive) {
                     saveCounter++;
                 }
             }
