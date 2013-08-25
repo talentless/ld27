@@ -560,6 +560,7 @@ package
                 var selectedNewMember:Boolean = false;
                 for (var i:int = 0; i < bots.length; i++) {
                     var bot:TagSprite = bots.members[i];
+                    if (!bot.alive) { continue; }
                     var botPos:FlxPoint = new FlxPoint(bot.x, bot.y);
 
                     if (bot.overlapsPoint(mousePos)
