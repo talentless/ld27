@@ -8,6 +8,29 @@ package
         [Embed(source="assets/decorations.png")] static public var DecorationTiles:Class;
         [Embed(source="assets/civ.png")] static public var CivTiles:Class;
 
+        [Embed(source="assets/music.mp3")] public var BGMusic:Class;
+
+        [Embed(source="assets/explosion.mp3")] public var SFX_EXPLOSION:Class;
+        [Embed(source="assets/pause.mp3")] public var SFX_PAUSE:Class;
+        [Embed(source="assets/saved.mp3")] public var SFX_SAVED:Class;
+        [Embed(source="assets/activated.mp3")] public var SFX_ACTIVATED:Class;
+        [Embed(source="assets/blocked.mp3")] public var SFX_BLOCKED:Class;
+        [Embed(source="assets/aaa.mp3")] public var SFX_DEAD:Class;
+
+        [Embed(source="assets/1.mp3")] public var SFX_1:Class;
+        [Embed(source="assets/2.mp3")] public var SFX_2:Class;
+        [Embed(source="assets/3.mp3")] public var SFX_3:Class;
+        [Embed(source="assets/4.mp3")] public var SFX_4:Class;
+        [Embed(source="assets/5.mp3")] public var SFX_5:Class;
+        [Embed(source="assets/6.mp3")] public var SFX_6:Class;
+        [Embed(source="assets/7.mp3")] public var SFX_7:Class;
+        [Embed(source="assets/8.mp3")] public var SFX_8:Class;
+        [Embed(source="assets/9.mp3")] public var SFX_9:Class;
+        [Embed(source="assets/10.mp3")] public var SFX_10:Class;
+        [Embed(source="assets/takeoff.mp3")] public var SFX_TAKEOFF:Class;
+
+        public var countdownSFXs:Array;
+
         static public var CIV_SPEED:Number = 200;
         static public var BOT_SPEED:Number = 400;
         static public var ALIEN_SPEED:Number = 200;
@@ -52,6 +75,19 @@ package
 		override public function create():void
 		{
             FlxG.mouse.show();
+
+            countdownSFXs = new Array(
+                SFX_9,
+                SFX_8,
+                SFX_7,
+                SFX_6,
+                SFX_5,
+                SFX_4,
+                SFX_3,
+                SFX_2,
+                SFX_1,
+                SFX_TAKEOFF
+                );
 
             // LEVEL
             FlxG.bgColor = 0xff1c1b1c;
@@ -111,9 +147,9 @@ package
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 15, 4, 4, 4, 4, 4, 6,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 11, 3,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0,  12, 3,
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 13, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 10, 11, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 26, 0, 0, 0, 0, 0,  12, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 0, 0, 10, 13, 3,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 14, 5, 5, 5, 5, 5, 7,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
@@ -227,6 +263,12 @@ package
 
             // do not add
             gameOver = new FlxGroup();
+
+            // music
+            FlxG.playMusic(BGMusic,1);
+            FlxG.music.pause();
+
+            FlxG.play(SFX_10,1);
         }
 
         // GENERATE UNITS
@@ -294,6 +336,7 @@ package
 
                             saveCounter++;
                             updateLabels();
+                            FlxG.play(SFX_SAVED, 1);
                         }
                         continue; // we are in the room
                     } else {
@@ -359,6 +402,9 @@ package
                     if (bot.tag == TagSprite.BOT_POINTER) {
                         bot.angle = FlxU.getAngle(new FlxPoint(bot.x, bot.y),
                             getRoomCenter(getEscapePod()));
+                        if (!bot.overlay.visible) {
+                           FlxG.play(SFX_ACTIVATED, 1);
+                        }
                         bot.showOverlay(getRoomCorner(getRoomForPoint(bot.x, bot.y)));
                     }
                     bot.play("idle");
@@ -406,6 +452,8 @@ package
 
             FlxG.camera.shake(0.01, 0.5);
             FlxG.camera.flash(0xffff9999, 0.5);
+
+            FlxG.play(SFX_EXPLOSION,1);
         }
 
         public function updateAliens(): void {
@@ -429,6 +477,7 @@ package
                         var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
                         alien.followPath(path, ALIEN_SPEED);
                         alien.timer = 10;
+                        FlxG.play(SFX_BLOCKED, 1);
                     }
                 }
                 alien.angle = alien.pathAngle;
@@ -500,9 +549,12 @@ package
                 paused = !paused;
                 if (paused) {
                     stateLabel.text = "paused";
+                    FlxG.music.resume();
                 } else {
-                    stateLabel.text = "takeoff"
+                    stateLabel.text = "takeoff";
+                    FlxG.music.pause();
                 }
+                FlxG.play(SFX_PAUSE, 1);
             } 
             if (paused) {
                 timePaused += FlxG.elapsed;
@@ -515,6 +567,7 @@ package
             updateAliens();
 
             if (10-timeRemaining > aliens.length) {
+                FlxG.play(countdownSFXs[aliens.length-1], 1);
                 placeAlien();
             }
 
@@ -572,6 +625,8 @@ package
             FlxG.camera.fade(0xff89313F, 1.5, showResults);
 
             level.setTile(40, 15, 1); // close the door
+
+            FlxG.play(SFX_TAKEOFF, 1);
         }
 
         public function showResults():void {
@@ -663,6 +718,8 @@ package
 
             lostCounter++;
             updateLabels();
+
+            FlxG.play(SFX_DEAD,1);
         }
 
         public function civPowerUp(civ:TagSprite,emitter:TagSprite):void
