@@ -5,6 +5,7 @@ package
 	public class PlayState extends FlxState
 	{
         [Embed(source="assets/tiles.png")] static public var RTiles:Class;
+        [Embed(source="assets/decorations.png")] static public var DecorationTiles:Class;
         [Embed(source="assets/civ.png")] static public var CivTiles:Class;
 
         static public var CIV_SPEED:Number = 200;
@@ -12,6 +13,7 @@ package
         static public var ALIEN_SPEED:Number = 200;
 
         public var level:FlxTilemap;
+        public var levelDecorations:FlxTilemap;
 
         public var liftOff:Boolean;
         public var paused:Boolean;
@@ -90,13 +92,52 @@ package
             level.loadMap(FlxTilemap.arrayToCSV(data,48),PlayState.RTiles,0,0,FlxTilemap.AUTO);
             add(level);
 
-            // TODO: add a second tile map here that will sit over the first
+            // a second tile map here that will sit over the first
             // for decorations. this one will NOT be an automap and it will
             // not partake in collisions
+            var decorationData:Array = new Array(
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 8, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 8, 1, 1, 8, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 8,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 8, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 8, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 8, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 4, 4, 4, 4, 4, 6,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 11, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  12, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 13, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 5, 5, 5, 5, 5, 7,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 8, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 8, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 8,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 8, 1, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1
+                );
+            levelDecorations = new FlxTilemap();
+            levelDecorations.loadMap(FlxTilemap.arrayToCSV(decorationData,48),PlayState.DecorationTiles,16,16,NaN);
+            add(levelDecorations);
 
             // GROUPS
             levelOverlay = new FlxGroup();
             add(levelOverlay);
+
+            roomOverlays = new FlxGroup();
+            add(roomOverlays);
 
             emitters = new FlxGroup();
             add(emitters);
@@ -109,9 +150,6 @@ package
 
             aliens = new FlxGroup();
             add(aliens);
-
-            roomOverlays = new FlxGroup();
-            add(roomOverlays);
 
             // ADD ACTUAL UNITS
             // we will want to change this to a card drawing system so we do
@@ -154,22 +192,22 @@ package
             add(pauseGroup); // to add or not to add?
 
             // UI
-            stateLabel = new FlxText(650, 20, 120, "takeoff");
-            stateLabel.size = 24;
+            stateLabel = new FlxText(670, 20, 120, "takeoff");
+            stateLabel.size = 20;
             add(stateLabel);
 
             timeRemaining = 10.0;
             timePaused = 0;
-            timerLabel = new FlxText(650, 60, 120, timeRemaining.toFixed(2));
-            timerLabel.size = 24;
+            timerLabel = new FlxText(670, 60, 120, timeRemaining.toFixed(2));
+            timerLabel.size = 20;
             add(timerLabel);
 
-            saveLabel = new FlxText(650, 320, 120, saveCounter.toString() + " saved");
-            saveLabel.size = 24;
+            saveLabel = new FlxText(670, 320, 120, saveCounter.toString() + " saved");
+            saveLabel.size = 20;
             add(saveLabel);
 
-            lostLabel = new FlxText(650, 360, 120, lostCounter.toString() + " lost");
-            lostLabel.size = 24;
+            lostLabel = new FlxText(670, 360, 120, lostCounter.toString() + " lost");
+            lostLabel.size = 20;
             add(lostLabel);
 
             target = new FlxSprite(4*16, 4*16);
@@ -234,7 +272,8 @@ package
         public function updateCivs(): void {
             for (var i:int = 0; i < civs.length; i++) {
                 var civ:TagSprite = civs.members[i];
-                if (civ.pathSpeed == 0 || civ.touching) {
+                if (civ.pathSpeed == 0 || (civ.touching && civ.timer == 0)) {
+                    civ.decTimer();
                     civ.stopFollowingPath(true);
                     civ.velocity.x = civ.velocity.y = 0;
                     // check if in escape pod
@@ -262,6 +301,7 @@ package
                         var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), newDestination);
                         civ.followPath(path, CIV_SPEED);
                         civ.tag = TagSprite.CIV_WANDERING;
+                        civ.timer = 10;
                     }
                 }
                 civ.angle = civ.pathAngle;
@@ -398,7 +438,6 @@ package
                 if (FlxG.keys.justPressed("R")) {
                     FlxG.resetState();
                 }
-                super.update();
                 gameOver.update(); // only update // draw this when paused
                 return;
             }
@@ -506,7 +545,7 @@ package
             liftOff = true;
 
             FlxG.camera.shake(0.01, 1.5);
-            FlxG.camera.fade(0xff883333, 1.5, showResults);
+            FlxG.camera.fade(0xff89313F, 1.5, showResults);
 
             level.setTile(40, 15, 1); // close the door
         }
@@ -515,21 +554,40 @@ package
             FlxG.camera.stopFX();
             // add results to the game over group
             var bg:FlxSprite = new FlxSprite(-5,0);
-            bg.makeGraphic(768+5, 496, 0xff883333);
+            bg.makeGraphic(768+5, 496, 0xff89313F);
             gameOver.add(bg);
 
-            var title:FlxText = new FlxText(384-240, 100, 480, "GAME OVER");
-            title.size = 64;
-            title.alignment = "center";
-            gameOver.add(title);
+            var aliensOnBoard:int = 0;
+            for (var i:int = 0; i < aliens.length; i++) {
+                var alien:FlxObject = aliens.members[i];
+                var roomPos:FlxPoint = getRoomForPoint(alien.x, alien.y);
+                if (roomPos.x == 5 && roomPos.y == 2) {
+                    aliensOnBoard++;
+                }
+            }
 
-            var saveStat:FlxText = new FlxText(384-240, 230, 480, "Civilians Saved: " + saveCounter);
+            if (aliensOnBoard > 0) {
+                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You Let ALIENS On Board. Everyone Dies.");
+                alienStats.size = 32;
+                alienStats.alignment = "center";
+                gameOver.add(alienStats);
+
+                lostCounter += saveCounter;
+                saveCounter = 0;
+            }
+
+            var saveStat:FlxText = new FlxText(384-240, 220, 480, "Civilians Saved: " + saveCounter);
             saveStat.size = 32;
             saveStat.alignment = "center";
             gameOver.add(saveStat);
 
+            var leftBehind:FlxText = new FlxText(384-240, 260, 480, "Civilians Left Behind: " + (5 - saveCounter - lostCounter));
+            leftBehind.size = 32;
+            leftBehind.alignment = "center";
+            gameOver.add(leftBehind);
+
             var pauseRatio:Number = (timePaused + 0.001) / 10.0;
-            var timeStat:FlxText = new FlxText(384-240, 270, 480, "Pause Ratio: " + pauseRatio.toFixed(2));
+            var timeStat:FlxText = new FlxText(384-240, 310, 480, "Paused For: " + timePaused.toFixed(2) + "s");
             timeStat.size = 32;
             timeStat.alignment = "center";
             gameOver.add(timeStat);
@@ -538,6 +596,19 @@ package
             restart.size = 24;
             restart.alignment = "center";
             gameOver.add(restart);
+
+            var titleString:String = "GAME OVER";
+            if (aliensOnBoard == 0 && saveCounter == 5) {
+                if (timePaused > 5) {
+                    titleString = "SLOW WIN!";
+                } else {
+                    titleString = "REALZ WIN!";
+                }
+            }
+            var title:FlxText = new FlxText(384-240, 50, 480, titleString);
+            title.size = 64;
+            title.alignment = "center";
+            gameOver.add(title);
         }
 
         public function killCivs(civ:FlxSprite,alien:FlxSprite):void
@@ -556,13 +627,14 @@ package
         {
             if (emitter.tag == TagSprite.OVERLAY_STEAM) {
                 killCivs(civ, emitter);
-            } else if (emitter.tag == TagSprite.OVERLAY_POINTER && civ.tag != TagSprite.CIV_HEADING_HOME) {
+            } else if (emitter.tag == TagSprite.OVERLAY_POINTER && civ.tag != TagSprite.CIV_HEADING_HOME && civ.timer == 0) {
                 civ.tag = TagSprite.CIV_HEADING_HOME;
                 civ.stopFollowingPath(true);
                 civ.velocity.x = civ.velocity.y = 0;
                 var newDestination:FlxPoint = getRoomCenter(getEscapePod());
                 var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), newDestination);
                 civ.followPath(path, CIV_SPEED);
+                civ.timer = 10;
             }
         }
 

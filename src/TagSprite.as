@@ -23,6 +23,7 @@ package
         public var tag:int;
         public var emitter:FlxEmitter;
         public var overlay:TagSprite;
+        public var timer:int;
 
         public function TagSprite(X:Number=0,Y:Number=0,SimpleGraphic:Class=null)
         {
@@ -40,6 +41,11 @@ package
                 overlay.x = pos.x;
                 overlay.y = pos.y;
             }
+        }
+
+        public function decTimer():void {
+            timer -= 1;
+            if (timer < 0) { timer = 0; }
         }
     }
 }
