@@ -72,6 +72,8 @@ package
         public var saveLabel:FlxText;
         public var lostLabel:FlxText;
 
+        public var muteLabel:FlxText;
+
 		override public function create():void
 		{
             FlxG.mouse.show();
@@ -246,6 +248,10 @@ package
             lostLabel = new FlxText(670, 360, 120, lostCounter.toString() + " lost");
             lostLabel.size = 20;
             add(lostLabel);
+
+            muteLabel = new FlxText(670, FlxG.height-40, 120, "(m)usic");
+            muteLabel.size = 16;
+            add(muteLabel);
 
             target = new FlxSprite(4*16, 4*16);
             target.makeGraphic(16,16,0xff00ff00);
@@ -546,6 +552,10 @@ package
             // reseting
             if (FlxG.keys.justPressed("R")) {
                 FlxG.resetState();
+            }
+
+            if (FlxG.keys.justPressed("M")) {
+                FlxG.music.volume = FlxG.music.volume == 0 ? 1 : 0;
             }
 
             // pausing
