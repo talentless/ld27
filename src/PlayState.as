@@ -15,6 +15,7 @@ package
         public var level:FlxTilemap;
         public var levelDecorations:FlxTilemap;
 
+        public var launchPrep:Boolean;
         public var liftOff:Boolean;
         public var paused:Boolean;
         public var pauseGroup:FlxGroup;
@@ -272,8 +273,8 @@ package
         public function updateCivs(): void {
             for (var i:int = 0; i < civs.length; i++) {
                 var civ:TagSprite = civs.members[i];
+                civ.decTimer();
                 if (civ.pathSpeed == 0 || (civ.touching && civ.timer == 0)) {
-                    civ.decTimer();
                     civ.stopFollowingPath(true);
                     civ.velocity.x = civ.velocity.y = 0;
                     // check if in escape pod
@@ -349,6 +350,7 @@ package
                 var bot:TagSprite = bots.members[i];
                 bot.immovable = false;
                 bot.angle = bot.pathAngle;
+                bot.decTimer();
                 if (bot.pathSpeed == 0) {
                     bot.stopFollowingPath(true);
                     bot.velocity.x = bot.velocity.y = 0;
@@ -377,9 +379,10 @@ package
             if (pos == null) {
                 pos = getRoomCenter(getRandomAlienRoom());
             }
-            var alien:FlxSprite = new FlxSprite(pos.x, pos.y);
+            var alien:TagSprite = new TagSprite(pos.x, pos.y);
             alien.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             alien.width = alien.height = 8;
+            alien.timer = 0;
 
             alien.addAnimation("run", [13, 14], 8, true);
             //alien.addAnimation("idle", [0,3], 1.5, true);
@@ -407,8 +410,9 @@ package
 
         public function updateAliens(): void {
             for (var i:int = 0; i < aliens.length; i++) {
-                var alien:FlxSprite = aliens.members[i];
-                if (alien.pathSpeed == 0 || (alien.touching)) {
+                var alien:TagSprite = aliens.members[i];
+                alien.decTimer();
+                if (alien.pathSpeed == 0 || (alien.touching && alien.timer == 0)) {
                     alien.stopFollowingPath(true);
                     alien.velocity.x = alien.velocity.y = 0;
                     // check if in escape pod
@@ -424,6 +428,7 @@ package
                         }
                         var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
                         alien.followPath(path, ALIEN_SPEED);
+                        alien.timer = 10;
                     }
                 }
                 alien.angle = alien.pathAngle;
@@ -526,6 +531,19 @@ package
                     doGameOver();
                 }
             }
+
+            if (timeRemaining < 1.5 && !launchPrep) {
+                launchPrep = true;
+                var epPos:FlxPoint = getRoomCorner(getEscapePod());
+                var leftEngine:FlxEmitter = createEmitter(100, 0.6, 0xffffcc99, 150, 3, 0.01);
+                leftEngine.x = epPos.x+8;
+                leftEngine.y = epPos.y-8;
+                add(emitters.remove(leftEngine, true));
+                var rightEngine:FlxEmitter = createEmitter(100, 0.6, 0xffffcc99, 150, 3, 0.01);
+                rightEngine.x = epPos.x+8;
+                rightEngine.y = epPos.y+16*5+8;
+                add(emitters.remove(rightEngine, true));
+            }
             timerLabel.text = timeRemaining.toFixed(2);
         }
 
@@ -573,7 +591,7 @@ package
             }
 
             if (aliensOnBoard > 0) {
-                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You Let ALIENS On Board. The escape pod eventually crashes to Earth and it triggers human extiniction. No score for you. You suck!");
+                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You let ALIENS on loard. The escape pod eventually crashes to Earth and it triggers human extiniction. No score for you. You suck!");
                 alienStats.size = 32;
                 alienStats.alignment = "center";
                 gameOver.add(alienStats);
@@ -707,7 +725,7 @@ package
 
         // EFFECTS
 
-        private function createEmitter(numParticles:int, lifespan:Number, color:uint, v:int):FlxEmitter {
+        private function createEmitter(numParticles:int, lifespan:Number, color:uint, v:int, size:int=2, frequency:Number=0.1):FlxEmitter {
             var emitter:FlxEmitter = new FlxEmitter;
 
             //emitter.frequency = 1; Not sure if this replaces delay or not?
@@ -719,13 +737,13 @@ package
             for (var i:int = 0; i < numParticles; i++)
             {
                 var particle:FlxParticle = new FlxParticle();
-                particle.makeGraphic(2, 2, color);
+                particle.makeGraphic(size, size, color);
                 particle.exists = false;
                 emitter.add(particle);
             }
 
             emitters.add(emitter);
-            emitter.start(lifespan == 0, lifespan/6.0);
+            emitter.start(lifespan == 0, lifespan/6.0, frequency=frequency);
             emitter.lifespan = lifespan;
             return emitter;
         }
