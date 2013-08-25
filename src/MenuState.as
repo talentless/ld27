@@ -63,7 +63,7 @@ package
 			s = new FlxSprite(150, 375);
             s.loadGraphic(PlayState.CivTiles, true, true, 16, 16);
             s.frame = 6;
-            s.addAnimation("run", [10, 11], 8, true);
+            s.addAnimation("run", [8, 9], 1.5, true);
             s.play("run");
             add(s);
 

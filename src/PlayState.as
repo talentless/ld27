@@ -567,32 +567,48 @@ package
             }
 
             if (aliensOnBoard > 0) {
-                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You Let ALIENS On Board. Everyone Dies.");
+                var alienStats:FlxText = new FlxText(384-240, 140, 480, "You Let ALIENS On Board. The escape pod eventually crashes to Earth and it triggers human extiniction. No score for you. You suck!");
                 alienStats.size = 32;
                 alienStats.alignment = "center";
                 gameOver.add(alienStats);
 
                 lostCounter += saveCounter;
                 saveCounter = 0;
+            } else {
+                if (saveCounter == 0 && lostCounter < 5) {
+                    var zeroSaves:FlxText = new FlxText(384-240, 140, 480, "You saved no one AND left us behind!?");
+                    zeroSaves.size = 32;
+                    zeroSaves.alignment = "center";
+                    gameOver.add(zeroSaves);
+                } else if (saveCounter == 0) {
+                    var allDead:FlxText = new FlxText(384-240, 140, 480, "They did look awfully hungry. Thanks!");
+                    allDead.size = 32;
+                    allDead.alignment = "center";
+                    gameOver.add(allDead);
+                } else {
+                    var youTried:FlxText = new FlxText(384-240, 140, 480, "At least pretend to try.");
+                    youTried.size = 32;
+                    youTried.alignment = "center";
+                    gameOver.add(youTried);
+                }
+
+                var saveStat:FlxText = new FlxText(384-240, 220, 480, "Civilians Saved: " + saveCounter);
+                saveStat.size = 32;
+                saveStat.alignment = "center";
+                gameOver.add(saveStat);
+
+                var leftBehind:FlxText = new FlxText(384-240, 260, 480, "Civilians Left Behind: " + (5 - saveCounter - lostCounter));
+                leftBehind.size = 32;
+                leftBehind.alignment = "center";
+                gameOver.add(leftBehind);
+
+                var pauseRatio:Number = (timePaused + 0.001) / 10.0;
+                var timeStat:FlxText = new FlxText(384-240, 310, 480, "Paused For: " + timePaused.toFixed(2) + "s");
+                timeStat.size = 32;
+                timeStat.alignment = "center";
+                gameOver.add(timeStat);
             }
-
-            var saveStat:FlxText = new FlxText(384-240, 220, 480, "Civilians Saved: " + saveCounter);
-            saveStat.size = 32;
-            saveStat.alignment = "center";
-            gameOver.add(saveStat);
-
-            var leftBehind:FlxText = new FlxText(384-240, 260, 480, "Civilians Left Behind: " + (5 - saveCounter - lostCounter));
-            leftBehind.size = 32;
-            leftBehind.alignment = "center";
-            gameOver.add(leftBehind);
-
-            var pauseRatio:Number = (timePaused + 0.001) / 10.0;
-            var timeStat:FlxText = new FlxText(384-240, 310, 480, "Paused For: " + timePaused.toFixed(2) + "s");
-            timeStat.size = 32;
-            timeStat.alignment = "center";
-            gameOver.add(timeStat);
-
-            var restart:FlxText = new FlxText(384-240, 400, 480, "Press R to restart.");
+            var restart:FlxText = new FlxText(384-240, FlxG.height-40, 480, "Press R to restart.");
             restart.size = 24;
             restart.alignment = "center";
             gameOver.add(restart);
