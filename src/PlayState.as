@@ -755,7 +755,7 @@ package
             for (var i:int = 0; i < aliens.length; i++) {
                 var alien:FlxObject = aliens.members[i];
                 var roomPos:FlxPoint = getRoomForPoint(alien.x, alien.y);
-                if (roomPos.x == 5 && roomPos.y == 2) {
+                if (roomPos.x == 5 && roomPos.y == 2 && alien.alive) {
                     aliensOnBoard++;
                 }
             }
