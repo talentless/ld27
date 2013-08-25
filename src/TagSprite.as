@@ -26,6 +26,7 @@ package
         public var timer:int;
 
         private var _slowFlicker:int = 0;
+        public var slowFlicker:Boolean = false;
 
         public function TagSprite(X:Number=0,Y:Number=0,SimpleGraphic:Class=null)
         {
@@ -52,9 +53,10 @@ package
 
         override public function draw():void
         {
-            if (tag == OVERLAY_POINTER) {
-                _slowFlicker = (_slowFlicker + 1) % 6;
-                if(_slowFlicker > 3)
+            if (tag == OVERLAY_POINTER || slowFlicker) {
+                var r:int = slowFlicker ? 24 : 6;
+                _slowFlicker = (_slowFlicker + 1) % r;
+                if(_slowFlicker > r/2)
                 {
                     return;
                 }
