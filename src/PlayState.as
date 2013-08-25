@@ -68,6 +68,7 @@ package
 
         public var saveCounter:int;
         public var lostCounter:int;
+        public var aliensOnPod:int;
 
         public var saveLabel:FlxText;
         public var lostLabel:FlxText;
@@ -484,6 +485,19 @@ package
                     var curRoom:FlxPoint = getRoomForPoint(alien.x, alien.y);
                     if (curRoom.x == 5 && curRoom.y == 2) {
                         //alien.play("idle");
+                        if (alien.tag == TagSprite.CIV_HOME) {
+                            //civ.play("idle");
+                        } else {
+                            alien.tag = TagSprite.CIV_HOME;
+
+                            var finalDestination:FlxPoint = getRoomCorner(getEscapePod());
+                            finalDestination.x += 16 + 24 * (aliensOnPod % 3);
+                            finalDestination.y += 8 + (3 * 16 + 8) * (aliensOnPod % 2);
+
+                            var restingPath:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), finalDestination);
+                            alien.followPath(restingPath, ALIEN_SPEED);
+                            aliensOnPod++;
+                        }
                         continue; // we are in the room
                     } else {
                         // get new path
