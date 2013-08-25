@@ -258,6 +258,9 @@ package
             muteLabel = new FlxText(670, FlxG.height-40, 120, "(m)usic");
             muteLabel.size = 16;
             add(muteLabel);
+            var restartLabel:FlxText = new FlxText(670, FlxG.height-60, 120, "(r)estart");
+            restartLabel.size = 16;
+            add(restartLabel);
 
             target = new FlxSprite(4*16, 4*16);
             target.makeGraphic(16,16,0xff00ff00);
@@ -404,6 +407,7 @@ package
         public function updateBots(): void {
             for (var i:int = 0; i < bots.length; i++) {
                 var bot:TagSprite = bots.members[i];
+                if (!bot.alive) { continue; }
                 bot.immovable = false;
                 bot.angle = bot.pathAngle;
                 bot.decTimer();
@@ -423,7 +427,23 @@ package
                         if (!bot.overlay.alive) {
                            FlxG.play(SFX_ACTIVATED, 1);
                         }
-                        bot.showOverlay(getRoomCorner(getRoomForPoint(bot.x, bot.y)));
+                        var curRoom:FlxPoint = getRoomForPoint(bot.x, bot.y);
+                        bot.showOverlay(getRoomCorner(curRoom));
+
+                        if (curRoom.x == getEscapePod().x && curRoom.y == getEscapePod().y) {
+                            var effect:FlxEmitter = createEmitter(180, 0, 0xffaaaaaa, 200);
+                            effect.x = bot.x;
+                            effect.y = bot.y;
+
+                            bot.overlay.tag = TagSprite.OVERLAY_STEAM;
+                            bot.kill();
+
+                            FlxG.overlap(civs,roomOverlays,civPowerUp);
+                            FlxG.overlap(aliens,roomOverlays,killAliens);
+
+                            bot.hideOverlay();
+                            continue;
+                        }
                     } else {
                         if (bot.path != null && FlxU.getDistance(botPos, bot.path.tail()) < 16) {
                             bot.immovable = true;
@@ -830,6 +850,15 @@ package
                 civ.followPath(path, CIV_SPEED);
                 civ.timer = 10;
             }
+        }
+
+        public function killAliens(alien:TagSprite,emitter:TagSprite):void
+        {
+            var killEmit:FlxEmitter = createEmitter(20, 0, 0xff883333, 50);
+            killEmit.x = alien.x;
+            killEmit.y = alien.y;
+
+            alien.kill();
         }
 
         // UTILITY FUNCTIONS (rooms are 8x6 need to make these contants)
