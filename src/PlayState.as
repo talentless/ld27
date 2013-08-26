@@ -357,7 +357,7 @@ package
                     } else {
                         // get new path
                         var newDestination:FlxPoint = getRoomCenter(getRandomRoom(true));
-                        var path:FlxPath = level.findPath(new FlxPoint(civ.x, civ.y), newDestination);
+                        var path:FlxPath = level.findPath(new FlxPoint(civ.x+4, civ.y+4), newDestination);
                         civ.followPath(path, CIV_SPEED);
                         civ.tag = TagSprite.CIV_WANDERING;
                         civ.timer = 10;
@@ -535,7 +535,7 @@ package
                         if (alien.touching) {
                             newDestination = getRoomCenter(getRandomRoom(true));
                         }
-                        var path:FlxPath = level.findPath(new FlxPoint(alien.x, alien.y), newDestination);
+                        var path:FlxPath = level.findPath(new FlxPoint(alien.x+4, alien.y+4), newDestination);
                         alien.followPath(path, ALIEN_SPEED);
                         alien.timer = 10;
                         FlxG.play(SFX_BLOCKED, 1);
@@ -588,7 +588,7 @@ package
                 if (!selectedNewMember && selected != null) {
                     selected.stopFollowingPath(true);
                     var targetPos:FlxPoint = new FlxPoint(mouseTilePos.x+4, mouseTilePos.y+8);
-                    var path:FlxPath = level.findPath(new FlxPoint(selected.x, selected.y),
+                    var path:FlxPath = level.findPath(new FlxPoint(selected.x+4, selected.y+4),
                       targetPos);
                     selected.followPath(path, BOT_SPEED);
                     selected.immovable = false;
@@ -683,6 +683,7 @@ package
         public function updateCollisions():void {
             FlxG.collide(level,emitters);
             FlxG.collide(level,civs);
+            //FlxG.collide(level,bots);
             FlxG.collide(level,bots, FlxObject.separateX);
             FlxG.collide(level,bots, FlxObject.separateY);
             FlxG.collide(level,aliens);
